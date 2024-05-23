@@ -172,7 +172,7 @@ if __name__ == '__main__':
     # Example usage
     while True:
         game_id = input('Which game do you want to solve? (Enter a letter a-d followed by a number 4-11)\n') # For example: a5
-        if game_id[0] not in games.keys() or game_id[1:] not in ['4', '5', '6', '7', '8', '9', '10', '11']:
+        if game_id[0] not in games.keys() or game_id[1:] not in ['4', '5', '6', '7', '8', '9', '10', '11', '12']:
             print("Invalid entry!")
             continue
         else:
