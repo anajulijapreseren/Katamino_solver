@@ -15,7 +15,8 @@ class Piece:
 
         for config in definition:
             piece = self.normalize(config)
-            # Generate rotations and mirror once per unique rotation found
+
+            # Generate rotations
             for _ in range(4):
                 normalized_piece = self.normalize_coords(piece)
                 piece_str = str(normalized_piece)
@@ -38,13 +39,13 @@ class Piece:
 
     def normalize(self, config):
         """Normalize piece coordinates."""
-        coords = [(x, y) for y, row in enumerate(config) for x, val in enumerate(row) if val == 'X']
+        coords = [(x, y) for y in range(len(config)) for x in range(len(config[0])) if config[y][x] == 'X']
         return self.normalize_coords(coords)
 
     def normalize_coords(self, coords):
         """Normalize coordinates to ensure the piece is positioned at the origin and sorted."""
-        min_x = min(x for x, y in coords)
-        min_y = min(y for x, y in coords)
+        min_x = min(x for x, _ in coords)
+        min_y = min(y for _, y in coords)
         shifted = [(x - min_x, y - min_y) for x, y in coords]
         normalized = sorted(shifted)
         return normalized
@@ -57,7 +58,7 @@ class Piece:
         """Mirror coordinates horizontally."""
         return [(-x, y) for x, y in coords]
 
-    def can_add_to_board(self, board, coords, offset):
+    def can_add_piece(self, board, coords, offset):
         """Check if the piece can be placed on the board."""
         ox, oy = offset
         for x, y in coords:
@@ -67,76 +68,72 @@ class Piece:
                 return False
         return True
 
-    def add_to_board(self, board, coords, offset):
+    def add_piece(self, board, coords, offset):
         """Place a piece on the board."""
         ox, oy = offset
         for x, y in coords:
             board[y + oy][x + ox] = self.name
 
-    def remove_from_board(self, board, coords, offset):
+    def remove_piece(self, board, coords, offset):
         """Remove a piece from the board."""
         ox, oy = offset
         for x, y in coords:
             board[y + oy][x + ox] = -1
 
-    def offsets_to_fill_pos(self, pos):
-        """Returns offsets in which this piece would fill the specified pos."""
+    def get_offsets(self, pos):
+        """Get all possible offsets in which the piece fills the specified position."""
         result = []
         for coords in self.orientations:
             for x, y in coords:
                 ox = pos[0] - x
                 oy = pos[1] - y
-                if (ox,oy) not in result:
+                if (ox,oy) not in result: # Keep only unique offsets
                     result.append((ox, oy))
         return result
 
 
 
-def find_available_pos_in_board(board):
-    for i, row in enumerate(board):
-        for j, val in enumerate(row):
-            if val == -1:
+def find_empty_position(board):
+    for i in range(len(board)):
+        for j in range(len(board[i])):
+            if board[i][j] == -1:
                 return j, i
     return None
 
-def solve(pieces, board, depth):
+def solve(pieces, board):
     if len(pieces) == 0:
         return board
 
-    pos = find_available_pos_in_board(board)
+    pos = find_empty_position(board)
     if not pos:
-        #print('No available position on board!')
+        # print('No empty position on board!')
         return
-    # print_board(board, depth)
-    # print('  '*depth + 'Trying to fill position %d,%d' % pos)
+    # print_board(board)
+    # print('Trying to fill position %d,%d' % pos)
     # time.sleep(2)
 
-    for piece_num, piece in enumerate(pieces):
-        new_pieces = pieces[:piece_num] + pieces[piece_num+1:]
+    for piece in pieces:
+        available_pieces = pieces.copy()
+        available_pieces.remove(piece)
         for orientation in piece.orientations:
-            for offset in piece.offsets_to_fill_pos(pos):
-                if piece.can_add_to_board(board, orientation, offset):
-                    piece.add_to_board(board, orientation, offset)
-                    solution = solve(new_pieces, board, depth+1)
+            for offset in piece.get_offsets(pos):
+                if piece.can_add_piece(board, orientation, offset):
+                    piece.add_piece(board, orientation, offset)
+                    solution = solve(available_pieces, board)
                     if solution:
                         return solution
-                    piece.remove_from_board(board, orientation, offset)
-    #print('  '*depth + 'No solution, backing up.')
+                    piece.remove_piece(board, orientation, offset)
+    #print('No solution, backtracking.')
     return None
 
-# def print_board(board, indent):
-#     for row in board:
-#         print('  '*indent + ' '.join(str(x) if x != -1 else '.' for x in row))
-#     print()
 
-def print_board(board, indent):
+def print_board(board):
     print(' '+ '_ '*len(board[0]))
     for i in range(len(board)-1):
         print('|', end='')
         for j in range(len(board[0])-1):
             this = board[i][j]
-            right = board[i][j+1]
-            #print(board[i][j], end='')            
+            right = board[i][j+1]          
             if i <= len(board)-2:
                 down = board[i+1][j]
                 if this != down:
@@ -169,9 +166,8 @@ def print_board(board, indent):
 
 
 if __name__ == '__main__':
-    # Example usage
     while True:
-        game_id = input('Which game do you want to solve? (Enter a letter a-d followed by a number 4-11)\n') # For example: a5
+        game_id = input('Which game do you want to solve? (Enter a letter a-d followed by a number 4-12)\n') # For example: a5
         if game_id[0] not in games.keys() or game_id[1:] not in ['4', '5', '6', '7', '8', '9', '10', '11', '12']:
             print("Invalid entry!")
             continue
@@ -183,11 +179,11 @@ if __name__ == '__main__':
     board = make_board(game_size)
     selected_pieces = {k: ALL_PIECES[k] for k in games[game_letter][:game_size]}
     pieces = [Piece(v, k) for k, v in selected_pieces.items()]
-    solution = solve(pieces,board,0)
+    solution = solve(pieces,board)
     
     if solution:
-        print('=== SOLVED! ===')
-        print_board(solution,0)
+        print('=== SOLUTION! ===')
+        print_board(solution)
         print('Time: ' + str(time.time()-start))
     else:
         print('No Solution!')
