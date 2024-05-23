@@ -1,4 +1,5 @@
 import copy
+from pieces_and_games import *
 
 class Piece:
     """A class to handle piece operations like rotation and placement."""
@@ -120,9 +121,45 @@ def solve(pieces, board, depth):
     #print('  '*depth + 'No solution, backing up.')
     return None
 
+# def print_board(board, indent):
+#     for row in board:
+#         print('  '*indent + ' '.join(str(x) if x != -1 else '.' for x in row))
+#     print()
+
 def print_board(board, indent):
-    for row in board:
-        print('  '*indent + ' '.join(str(x) if x != -1 else '.' for x in row))
+    print(' '+ '_ '*len(board[0]))
+    for i in range(len(board)-1):
+        print('|', end='')
+        for j in range(len(board[0])-1):
+            this = board[i][j]
+            right = board[i][j+1]
+            #print(board[i][j], end='')            
+            if i <= len(board)-2:
+                down = board[i+1][j]
+                if this != down:
+                    print('_', end='')
+                else:
+                    print(' ', end='')
+            if this != right:
+                print('|', end='')
+            else:
+                print(' ', end='')
+
+        if i <= len(board)-2:
+            down = board[i+1][-1]
+            if board[i][-1] != down:
+                print('_|')
+            else:
+                print(' |')
+    print('|', end='')
+    for j in range(len(board[0])-1):
+        this = board[-1][j]
+        right = board[-1][j+1]
+        if this != right:
+            print('_|', end='')
+        else:
+            print('_ ', end='')
+    print('_|')
     print()
 
 # Usage example with defined pieces
@@ -183,10 +220,32 @@ PIECES_DEF={
 }
 
 
+
+# if __name__ == '__main__':
+#     # Example usage:
+#     board = [[-1] * 3 for _ in range(2)]  # Those 2 numbers are width and height of the board
+#     pieces = [Piece(v, k) for k, v in PIECES_DEF1.items()]
+#     solution = solve(pieces,board,0)
+#     if solution:
+#         print('=== SOLVED! ===')
+#         print_board(solution,0)
+#     else:
+#         print('No Solution!')
+
 if __name__ == '__main__':
-    # Example usage:
-    board = [[-1] * 3 for _ in range(2)]  # Those 2 numbers are width and hight of the board
-    pieces = [Piece(v, k) for k, v in PIECES_DEF1.items()]
+    # Example usage
+    while True:
+        game_id = input('Which game do you want to solve? (Enter a letter a-d followed by a number 4-11)\n') # For example: a5
+        if game_id[0] not in games.keys() or game_id[1:] not in ['4', '5', '6', '7', '8', '9', '10', '11']:
+            print("Invalid entry!")
+            continue
+        else:
+            break
+    game_letter = game_id[0]
+    game_size = int(game_id[1:])
+    board = make_board(game_size)
+    selected_pieces = {k: ALL_PIECES[k] for k in games[game_letter][:game_size]}
+    pieces = [Piece(v, k) for k, v in selected_pieces.items()]
     solution = solve(pieces,board,0)
     if solution:
         print('=== SOLVED! ===')
