@@ -1,5 +1,6 @@
 import copy
 from pieces_and_games import *
+import time
 
 class Piece:
     """A class to handle piece operations like rotation and placement."""
@@ -85,7 +86,8 @@ class Piece:
             for x, y in coords:
                 ox = pos[0] - x
                 oy = pos[1] - y
-                result.append((ox, oy))
+                if (ox,oy) not in result:
+                    result.append((ox, oy))
         return result
 
 
@@ -105,8 +107,9 @@ def solve(pieces, board, depth):
     if not pos:
         #print('No available position on board!')
         return
-    #print_board(board, depth)
-    #print('  '*depth + 'Trying to fill position %d,%d' % pos)
+    # print_board(board, depth)
+    # print('  '*depth + 'Trying to fill position %d,%d' % pos)
+    # time.sleep(2)
 
     for piece_num, piece in enumerate(pieces):
         new_pieces = pieces[:piece_num] + pieces[piece_num+1:]
@@ -162,75 +165,8 @@ def print_board(board, indent):
     print('_|')
     print()
 
-# Usage example with defined pieces
-# Define your pieces and call solve(pieces) accordingly
-PIECES_DEF1 = {
-    'T1': [
-        ['XX',
-         'X ',
-         'X ']
-    ],
-    'I2':[['X','X']]
-    # 'T2': [
-    #     [' X ',
-    #      'XXX']
-    # ],
-    # 'L4': [
-    #     [' X',
-    #      'XX']
-    # ],
-    # 'Z5': [
-    #     ['XX ',
-    #      ' XX']
-    # ],
-    # 'I3': [
-    #     ['X']
-    # ]
-}
-
-PIECES_DEF={
-    
-    'L5':[
-        ['XX',
-         'X ',
-         'X ',
-         'X ' ]],
-    'F5':[ 
-        ['X ',
-         'XX',
-         'X ',
-         'X ' ]],
-    'T5':[ 
-        [' X ',
-         ' X ',
-         'XXX' ]],
-    'P5':[ 
-        ['XX',
-         'XX',
-         'X ']],
-    'M5':[ 
-        ['XX ',
-         ' XX',
-         '  X']],
-    'Z5':[ 
-        ['XX ',
-         ' X ',
-         ' XX']]
-  
-}
 
 
-
-# if __name__ == '__main__':
-#     # Example usage:
-#     board = [[-1] * 3 for _ in range(2)]  # Those 2 numbers are width and height of the board
-#     pieces = [Piece(v, k) for k, v in PIECES_DEF1.items()]
-#     solution = solve(pieces,board,0)
-#     if solution:
-#         print('=== SOLVED! ===')
-#         print_board(solution,0)
-#     else:
-#         print('No Solution!')
 
 if __name__ == '__main__':
     # Example usage
@@ -241,14 +177,17 @@ if __name__ == '__main__':
             continue
         else:
             break
+    start = time.time()
     game_letter = game_id[0]
     game_size = int(game_id[1:])
     board = make_board(game_size)
     selected_pieces = {k: ALL_PIECES[k] for k in games[game_letter][:game_size]}
     pieces = [Piece(v, k) for k, v in selected_pieces.items()]
     solution = solve(pieces,board,0)
+    
     if solution:
         print('=== SOLVED! ===')
         print_board(solution,0)
+        print('Time: ' + str(time.time()-start))
     else:
         print('No Solution!')
