@@ -82,15 +82,15 @@ class Piece:
         for x, y in coords:
             board[y + oy][x + ox] = -1
 
-    def get_offsets(self, pos):
+    def get_offsets(self, pos, coords):
         """Get all possible offsets in which the piece fills the specified position."""
         result = []
-        for coords in self.orientations:
-            for x, y in coords:
-                ox = pos[0] - x
-                oy = pos[1] - y
-                if (ox,oy) not in result: # Keep only unique offsets
-                    result.append((ox, oy))
+        # for coords in self.orientations:
+        for x, y in coords:
+            ox = pos[0] - x
+            oy = pos[1] - y
+            if (ox,oy) not in result: # Keep only unique offsets
+                result.append((ox, oy))
         return result
 
 
@@ -110,22 +110,22 @@ def solve(pieces, board):
     if not pos:
         # print('No empty position on board!')
         return
-    # print_board(board)
-    # print('Trying to fill position %d,%d' % pos)
+    print_board(board)
+    print('Trying to fill position %d,%d' % pos)
     # time.sleep(2)
 
     for piece in pieces:
         available_pieces = pieces.copy()
         available_pieces.remove(piece)
         for orientation in piece.orientations:
-            for offset in piece.get_offsets(pos):
+            for offset in piece.get_offsets(pos, orientation):
                 if piece.can_add_piece(board, orientation, offset):
                     piece.add_piece(board, orientation, offset)
                     solution = solve(available_pieces, board)
                     if solution:
                         return solution
                     piece.remove_piece(board, orientation, offset)
-    #print('No solution, backtracking.')
+    print('No solution, backtracking.')
     return None
 
 
