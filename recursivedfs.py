@@ -1,6 +1,8 @@
-import copy
 from pieces_and_games import *
 import time
+import matplotlib.pyplot as plt
+from tqdm import tqdm
+import random
 
 class Piece:
     """A class to handle piece operations like rotation and placement."""
@@ -163,9 +165,42 @@ def print_board(board):
     print()
 
 
+depth = [4,5,6,7,8,9,10,11,12]
+time_a = [0, 0.009, 0.120, 1.582, 2.303, 14.933, 16.879, 32.565, 75.112]
+time_b = [0, 0.030, 0.138, 0.343, 7.684, 2.724, 9.760, 8.123, 6.713]
+time_c = [0, 0.048, 0.401, 2.392, 0.206, 4.392, 3.331, 0.515, 21.069]
+time_d = [0, 0.016, 0.056, 0.162, 2.006, 2.491, 19.538, 100.916, 46.493]
+
+time_ = [sum(y) for y in zip([sum(x) for x in zip(time_a, time_b)], [sum(x) for x in zip(time_c, time_d)])]
+time_p = [0.0035, 0.014, 0.068, 0.631, 1.249, 7.549, 22.161, 36.682, 115.55]
+
+# plt.plot(depth, time_p)
+# plt.xlabel('depth')
+# plt.ylabel('time[s]')
+# plt.show()
+
+
+
+def permutation(lst):
+    if len(lst) == 0:
+        return []
+    if len(lst) == 1:
+        return [lst]
+    
+    one_permutation = []
+
+    for i in range(len(lst)):
+       m = lst[i]
+       remaining = lst[:i] + lst[i+1:]
+       for p in permutation(remaining):
+           one_permutation.append([m] + p)
+    return one_permutation
+
 
 
 if __name__ == '__main__':
+
+    # FINDING SOLUTIONS
     while True:
         game_id = input('Which game do you want to solve? (Enter a letter a-d followed by a number 4-12)\n') # For example: a5
         if game_id[0] not in games.keys() or game_id[1:] not in ['4', '5', '6', '7', '8', '9', '10', '11', '12']:
@@ -180,10 +215,35 @@ if __name__ == '__main__':
     selected_pieces = {k: ALL_PIECES[k] for k in games[game_letter][:game_size]}
     pieces = [Piece(v, k) for k, v in selected_pieces.items()]
     solution = solve(pieces,board)
+
+    #######################################################################################
+    # TIME COMPLEXITY
+    # game_id = 'a11'
     
+    # game_letter = game_id[0]
+    # game_size = int(game_id[1:])
+    # board = make_board(game_size)
+    # selected_pieces = games[game_letter][:game_size]
+    # p = selected_pieces
+    # # permutations = permutation(selected_pieces)
+    # # n = len(permutations)
+    # # random_permutations = [random.randrange(n) for _ in range(10)]
+    # sum_time = 0
+    # for i in tqdm(range(10)):
+    #     random.shuffle(p)
+    #     board = make_board(game_size)
+    #     permuted_pieces = {k: ALL_PIECES[k] for k in p}
+    #     pieces = [Piece(v, k) for k, v in permuted_pieces.items()]
+    #     start = time.time()
+    #     solution = solve(pieces,board)    
+    #     sum_time += time.time()-start
+
+    ##################################################################################################
+
     if solution:
         print('=== SOLUTION! ===')
         print_board(solution)
+        # print('Time: ' + str(sum_time/10))
         print('Time: ' + str(time.time()-start))
     else:
         print('No Solution!')
